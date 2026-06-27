@@ -6,7 +6,7 @@ from daft import DataFrame
 
 class LengthFilter:
     def __init__(
-        self, input_column: str = "text", max_len: int = 1e9, min_len: int = 0
+        self, input_column: str = "text", max_len: int = 10000, min_len: int = 0
     ):
         self.input_column = input_column
         self.max_len = max_len

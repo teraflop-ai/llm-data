@@ -6,4 +6,5 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "daft[ray]>=0.7.16",
+    "sentence-transformers>=5.6.0",
 ]
