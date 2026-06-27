@@ -1,16 +1,19 @@
+from typing import Optional
+
 def embedding_factory(
     *,
     model_name: str = "lightonai/DenseOn",
     batch_size: int = 32,
     embedding_dim: int = 768,
-    gpus: int = 1,
+    gpus: float = 1,
+    cpus: Optional[float] = None, 
 ):
     import daft
     from daft import DataType, Series
 
     return_dtype = DataType.embedding(DataType.float32(), embedding_dim)
 
-    @daft.cls(gpus=gpus)
+    @daft.cls(gpus=gpus, cpus=cpus)
     class TextEmbedding:
         def __init__(self):
             self.model_name = model_name
@@ -43,6 +46,7 @@ def embed_text(
     batch_size: int = 32,
     embedding_dim: int = 768,
     gpus: int | float = 1,
+    cpus: Optional[float] = None,
 ):
     from daft import col
 
@@ -51,6 +55,7 @@ def embed_text(
         batch_size=batch_size,
         embedding_dim=embedding_dim,
         gpus=gpus,
+        cpus=cpus,
     )
 
     return df.with_column(
