@@ -8,21 +8,21 @@ def embedding_factory(
     embedding_dim: int = 768,
     max_seq_len: Optional[int] = None,
     normalize_embeddings: Optional[bool] = True,
-    gpus: float = 1,
+    precision: str = "float32",
+    gpus: int | float = 1,
     cpus: Optional[float] = None,
 ):
     import daft
     from daft import DataType, Series
 
-    return_dtype = DataType.embedding(DataType.float32(), embedding_dim)
+    from llm_data.utils import get_daft_dtype
+
+    daft_dtype = get_daft_dtype(precision=precision)
+    return_dtype = DataType.embedding(daft_dtype, embedding_dim)
 
     @daft.cls(gpus=gpus, cpus=cpus)
     class TextEmbedding:
         def __init__(self):
-            self.model_name = model_name
-            self.batch_size = batch_size
-            self.max_seq_len = max_seq_len
-            self.normalize_embeddings = normalize_embeddings
             self.model = None
 
         @daft.method.batch(return_dtype=return_dtype, batch_size=batch_size)
@@ -33,9 +33,12 @@ def embedding_factory(
                 inputs,
                 batch_size=batch_size,
                 show_progress_bar=False,
-                normalize_embeddings=self.normalize_embeddings,
+                normalize_embeddings=normalize_embeddings,
+                truncate_dim=embedding_dim,
+                precision=precision,
+                convert_to_numpy=True,
             )
-            return embeddings.astype("float32")
+            return embeddings
 
         def lazy_load(self):
             if self.model is None:
@@ -45,16 +48,16 @@ def embedding_factory(
                 assert torch.cuda.is_available()
 
                 self.model = SentenceTransformer(
-                    self.model_name,
+                    model_name,
                     model_kwargs={
                         "attn_implementation": "flash_attention_2",
                         "torch_dtype": "bfloat16",
                     },
                     device="cuda",
                 )
-                
-                if self.max_seq_len is not None:
-                    self.model.max_seq_length = self.max_seq_len
+
+                if max_seq_len is not None:
+                    self.model.max_seq_length = max_seq_len
 
             return self.model
 
@@ -71,6 +74,7 @@ def embed_text(
     embedding_dim: int = 768,
     max_seq_len: Optional[int] = None,
     normalize_embeddings: Optional[bool] = True,
+    precision: str = "float32",
     gpus: int | float = 1,
     cpus: Optional[float] = None,
 ):
@@ -82,6 +86,7 @@ def embed_text(
         embedding_dim=embedding_dim,
         max_seq_len=max_seq_len,
         normalize_embeddings=normalize_embeddings,
+        precision=precision,
         gpus=gpus,
         cpus=cpus,
     )

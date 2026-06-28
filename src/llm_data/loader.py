@@ -1,15 +1,9 @@
 import daft
 from daft import CheckpointStore, CheckpointConfig, KeyFilteringSettings
 from typing import Optional
-from pathlib import Path
+from llm_data.utils import checkpoint_uri
 
 daft.set_runner_ray()
-
-
-def checkpoint_uri(path: str) -> str:
-    if "://" in path:
-        return path
-    return Path(path).resolve().as_uri()
 
 
 class DataLoader:
