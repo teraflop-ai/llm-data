@@ -6,6 +6,8 @@ def embedding_factory(
     model_name: str = "lightonai/DenseOn",
     batch_size: int = 32,
     embedding_dim: int = 768,
+    max_seq_len: Optional[int] = None,
+    normalize_embeddings: Optional[bool] = True,
     gpus: float = 1,
     cpus: Optional[float] = None,
 ):
@@ -19,13 +21,20 @@ def embedding_factory(
         def __init__(self):
             self.model_name = model_name
             self.batch_size = batch_size
+            self.max_seq_len = max_seq_len
+            self.normalize_embeddings = normalize_embeddings
             self.model = None
 
         @daft.method.batch(return_dtype=return_dtype, batch_size=batch_size)
         def embed_batch(self, text: Series):
             inputs = text.to_pylist()
             model = self.lazy_load()
-            embeddings = model.encode(inputs)
+            embeddings = model.encode(
+                inputs,
+                batch_size=batch_size,
+                show_progress_bar=False,
+                normalize_embeddings=self.normalize_embeddings,
+            )
             return embeddings.astype("float32")
 
         def lazy_load(self):
@@ -41,8 +50,12 @@ def embedding_factory(
                         "attn_implementation": "flash_attention_2",
                         "torch_dtype": "bfloat16",
                     },
-                    device="cuda"
+                    device="cuda",
                 )
+                
+                if self.max_seq_len is not None:
+                    self.model.max_seq_length = self.max_seq_len
+
             return self.model
 
     return TextEmbedding().embed_batch
@@ -56,6 +69,8 @@ def embed_text(
     model_name: str = "lightonai/DenseOn",
     batch_size: int = 32,
     embedding_dim: int = 768,
+    max_seq_len: Optional[int] = None,
+    normalize_embeddings: Optional[bool] = True,
     gpus: int | float = 1,
     cpus: Optional[float] = None,
 ):
@@ -65,6 +80,8 @@ def embed_text(
         model_name=model_name,
         batch_size=batch_size,
         embedding_dim=embedding_dim,
+        max_seq_len=max_seq_len,
+        normalize_embeddings=normalize_embeddings,
         gpus=gpus,
         cpus=cpus,
     )
