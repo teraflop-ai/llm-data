@@ -14,11 +14,10 @@ def embedding_factory(
 ):
     import daft
     from daft import DataType, Series
+    from llm_data.utils import daft_dtype
 
-    from llm_data.utils import get_daft_dtype
-
-    daft_dtype = get_daft_dtype(precision=precision)
-    return_dtype = DataType.embedding(daft_dtype, embedding_dim)
+    dtype = daft_dtype(precision=precision)
+    return_dtype = DataType.embedding(dtype, embedding_dim)
 
     @daft.cls(gpus=gpus, cpus=cpus)
     class TextEmbedding:
