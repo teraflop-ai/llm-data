@@ -2,9 +2,11 @@ import daft
 from daft import DataFrame, col
 from ftfy import fix_text
 
+
 @daft.func
 def ftfy_text(text: str) -> str:
     return fix_text(text)
+
 
 class FixEncoding:
     def __init__(self, input_column: str = "text", output_column: str = "text"):

@@ -1,5 +1,5 @@
 import daft
-from daft import CheckpointStore, CheckpointConfig
+from daft import CheckpointStore, CheckpointConfig, KeyFilteringSettings
 from typing import Optional
 from pathlib import Path
 
@@ -30,7 +30,7 @@ class DataLoader:
             self.config = CheckpointConfig(
                 store=CheckpointStore(self.checkpoint_path),
                 on=checkpoint_on,
-                settings=daft.KeyFilteringSettings(
+                settings=KeyFilteringSettings(
                     num_workers=num_workers,
                     cpus_per_worker=cpus_per_worker,
                 ),

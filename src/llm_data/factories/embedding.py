@@ -1,12 +1,13 @@
 from typing import Optional
 
+
 def embedding_factory(
     *,
     model_name: str = "lightonai/DenseOn",
     batch_size: int = 32,
     embedding_dim: int = 768,
     gpus: float = 1,
-    cpus: Optional[float] = None, 
+    cpus: Optional[float] = None,
 ):
     import daft
     from daft import DataType, Series
