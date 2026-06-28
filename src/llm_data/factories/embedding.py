@@ -30,9 +30,19 @@ def embedding_factory(
 
         def lazy_load(self):
             if self.model is None:
+                import torch
                 from sentence_transformers import SentenceTransformer
 
-                self.model = SentenceTransformer(self.model_name)
+                assert torch.cuda.is_available()
+
+                self.model = SentenceTransformer(
+                    self.model_name,
+                    model_kwargs={
+                        "attn_implementation": "flash_attention_2",
+                        "torch_dtype": "bfloat16",
+                    },
+                    device="cuda"
+                )
             return self.model
 
     return TextEmbedding().embed_batch

@@ -7,6 +7,7 @@ requires-python = ">=3.12"
 dependencies = [
     "daft[ray]>=0.7.16",
     "ftfy>=6.3.1",
+    "kernels<0.15",
     "magic-html>=0.1.8",
     "resiliparse>=1.0.8",
     "sentence-transformers>=5.6.0",
