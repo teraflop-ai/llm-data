@@ -1,5 +1,6 @@
+from dataclasses import dataclass
 from typing import Optional
-
+from daft import DataFrame, col
 
 def embedding_factory(
     *,
@@ -63,34 +64,35 @@ def embedding_factory(
     return TextEmbedding().embed_batch
 
 
-def embed_text(
-    df,
-    *,
-    input_column: str = "text",
-    output_column: str = "text_embedding",
-    model_name: str = "lightonai/DenseOn",
-    batch_size: int = 32,
-    embedding_dim: int = 768,
-    max_seq_len: Optional[int] = None,
-    normalize_embeddings: Optional[bool] = True,
-    precision: str = "float32",
-    gpus: int | float = 1,
-    cpus: Optional[float] = None,
-):
-    from daft import col
+@dataclass
+class EmbedText:
+    input_column: str = "text"
+    output_column: str = "text_embedding"
+    model_name: str = "lightonai/DenseOn"
+    batch_size: int = 32
+    embedding_dim: int = 768
+    max_seq_len: Optional[int] = None
+    normalize_embeddings: Optional[bool] = True
+    precision: str = "float32"
+    gpus: int | float = 1
+    cpus: Optional[float] = None
 
-    embed_batch = embedding_factory(
-        model_name=model_name,
-        batch_size=batch_size,
-        embedding_dim=embedding_dim,
-        max_seq_len=max_seq_len,
-        normalize_embeddings=normalize_embeddings,
-        precision=precision,
-        gpus=gpus,
-        cpus=cpus,
-    )
+    name: str = "EmbedText"
 
-    return df.with_column(
-        output_column,
-        embed_batch(col(input_column)),
-    )
+    def __post_init__(self):
+        self.embed_batch = embedding_factory(
+            model_name=self.model_name,
+            batch_size=self.batch_size,
+            embedding_dim=self.embedding_dim,
+            max_seq_len=self.max_seq_len,
+            normalize_embeddings=self.normalize_embeddings,
+            precision=self.precision,
+            gpus=self.gpus,
+            cpus=self.cpus,
+        )
+
+    def __call__(self, df: DataFrame) -> DataFrame:
+        return df.with_column(
+            self.output_column,
+            self.embed_batch(col(self.input_column)),
+        )
